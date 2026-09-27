@@ -49,6 +49,15 @@ export function CheckIn() {
     }
   }
 
+  /** Back to the dashboard, ready for the next person. */
+  function finish() {
+    const name = member?.name;
+    remember(null);
+    setOptimistic(null);
+    if (name) setToast(`Thanks, ${name}!`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   const levelCols =
     category.levels.length === 3 ? "grid-cols-3" : category.levels.length === 5 ? "grid-cols-3 md:grid-cols-5" : "grid-cols-3 md:grid-cols-6";
 
@@ -69,67 +78,101 @@ export function CheckIn() {
         <div className="card p-3 text-sm text-red border-red/40">Can&rsquo;t reach the family board right now. {error}</div>
       )}
 
-      <section className="card p-4 md:p-5 flex flex-col gap-4" style={member ? { borderColor: `${member.color}66` } : undefined}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            {member && <Avatar member={member} size={48} />}
-            <div className="min-w-0">
-              <div className="font-display text-2xl leading-tight">{member ? `Hey ${member.name}!` : "Tap your name above to check in"}</div>
-              <div className="text-sm text-muted">{currentLevel ? "You're checked in. Tap another to change it." : category.prompt}</div>
+      {member ? (
+        <section className="card p-4 md:p-5 flex flex-col gap-4" style={{ borderColor: `${member.color}66` }}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <Avatar member={member} size={48} />
+              <div className="min-w-0">
+                <div className="font-display text-2xl leading-tight">Hey {member.name}!</div>
+                <div className="text-sm text-muted">{currentLevel ? "You're checked in. Tap another to change it." : category.prompt}</div>
+              </div>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-xs uppercase tracking-widest text-muted">Today&rsquo;s category</span>
+              <span className="font-display text-xl text-gold">{category.name}</span>
             </div>
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-xs uppercase tracking-widest text-muted">Today&rsquo;s category</span>
-            <span className="font-display text-xl text-gold">{category.name}</span>
-          </div>
-        </div>
 
-        <div className={`grid gap-2 md:gap-3 ${levelCols} ${member ? "" : "opacity-50"}`}>
-          {category.levels.map((level) => {
-            const selected = currentLevelId === level.id;
-            return (
-              <button
-                key={level.id}
-                onClick={() => pick(level)}
-                disabled={!member || saving !== null}
-                className={`tap rounded-2xl p-2 md:p-3 flex flex-col items-center gap-2 border-2 ${
-                  selected ? "bg-white/12" : "bg-white/4 border-white/10"
-                } ${saving && saving !== level.id ? "opacity-60" : ""}`}
-                style={selected ? { borderColor: level.color, boxShadow: `0 0 0 4px ${level.color}33` } : undefined}
-                aria-pressed={selected}
+          <div className={`grid gap-2 md:gap-3 ${levelCols}`}>
+            {category.levels.map((level) => {
+              const selected = currentLevelId === level.id;
+              return (
+                <button
+                  key={level.id}
+                  onClick={() => pick(level)}
+                  disabled={saving !== null}
+                  className={`tap rounded-2xl p-2 md:p-3 flex flex-col items-center gap-2 border-2 ${
+                    selected ? "bg-white/12" : "bg-white/4 border-white/10"
+                  } ${saving && saving !== level.id ? "opacity-60" : ""}`}
+                  style={selected ? { borderColor: level.color, boxShadow: `0 0 0 4px ${level.color}33` } : undefined}
+                  aria-pressed={selected}
+                >
+                  <div className={selected ? "pop" : ""}>
+                    <LevelIcon categoryId={category.id} levelId={level.id} size="clamp(56px, 8vw, 112px)" />
+                  </div>
+                  <div className="font-display text-sm md:text-base text-center leading-tight">{level.label}</div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Reads as a scale from great to rough when the levels sit in one row. */}
+          <div className="hidden md:flex items-center gap-3 text-xs uppercase tracking-widest text-muted">
+            <span>Great day</span>
+            <div className="flex-1 h-1.5 rounded-full" style={{ background: "linear-gradient(90deg, #34D399, #A3E635, #FACC15, #FB923C, #F87171, #C026D3)" }} />
+            <span>Rough day</span>
+          </div>
+
+          {currentLevel ? (
+            <div className="flex flex-col sm:flex-row items-stretch gap-3">
+              <div
+                className="pop flex-1 rounded-xl px-3 py-3 text-center font-bold flex items-center justify-center"
+                style={{ background: `${currentLevel.color}22`, color: currentLevel.color }}
               >
-                <div className={selected ? "pop" : ""}>
-                  <LevelIcon categoryId={category.id} levelId={level.id} size="clamp(56px, 8vw, 112px)" />
-                </div>
-                <div className="font-display text-sm md:text-base text-center leading-tight">{level.label}</div>
+                {member.name}: {currentLevel.tagline}
+              </div>
+              <button
+                onClick={finish}
+                disabled={saving !== null}
+                className="tap rounded-xl bg-gold text-navy-900 font-display text-xl px-8 py-3 disabled:opacity-60"
+              >
+                Done
               </button>
-            );
-          })}
-        </div>
-
-        {/* Reads as a scale from great to rough when the levels sit in one row. */}
-        <div className="hidden md:flex items-center gap-3 text-xs uppercase tracking-widest text-muted">
-          <span>Great day</span>
-          <div className="flex-1 h-1.5 rounded-full" style={{ background: "linear-gradient(90deg, #34D399, #A3E635, #FACC15, #FB923C, #F87171, #C026D3)" }} />
-          <span>Rough day</span>
-        </div>
-
-        {member && currentLevel && (
-          <div className="pop rounded-xl px-3 py-2 text-center font-bold" style={{ background: `${currentLevel.color}22`, color: currentLevel.color }}>
-            {member.name}: {currentLevel.tagline}
+            </div>
+          ) : (
+            <button onClick={finish} className="tap self-end text-sm text-muted underline underline-offset-4">
+              Back to the dashboard
+            </button>
+          )}
+          {saveError && <div className="text-sm text-red">{saveError}</div>}
+        </section>
+      ) : (
+        <section className="card p-4 md:p-5 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="font-display text-2xl leading-tight">Tap your name to check in</div>
+            <div className="text-sm text-muted">
+              Today&rsquo;s category is <span className="text-gold font-bold">{category.name}</span>. {category.prompt}
+            </div>
           </div>
-        )}
-        {saveError && <div className="text-sm text-red">{saveError}</div>}
-      </section>
+          <div className="flex items-center gap-1" aria-hidden>
+            {category.levels.map((level) => (
+              <LevelIcon key={level.id} categoryId={category.id} levelId={level.id} size={40} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <DailyCards day={today} variant="phone" />
 
-      <div className="grid gap-4 md:grid-cols-[3fr_2fr]">
+      <div className={`grid gap-4 ${member ? "md:grid-cols-[3fr_2fr]" : ""}`}>
         <FamilyToday byMember={byMember} today={today} loading={loading} />
-        <div className="flex flex-col gap-4">
-          {member && <WeekStrip rows={mine} today={today} member={member} />}
-          {member && <Reminders member={member} />}
-        </div>
+        {member && (
+          <div className="flex flex-col gap-4">
+            <WeekStrip rows={mine} today={today} member={member} />
+            <Reminders member={member} />
+          </div>
+        )}
       </div>
 
       <footer className="text-center text-xs text-muted">
