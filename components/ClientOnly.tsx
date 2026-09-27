@@ -10,5 +10,10 @@ const subscribe = () => () => {};
  */
 export function ClientOnly({ children }: { children: React.ReactNode }) {
   const mounted = useSyncExternalStore(subscribe, () => true, () => false);
-  return mounted ? <>{children}</> : null;
+  if (mounted) return <>{children}</>;
+  return (
+    <div className="min-h-dvh flex items-center justify-center" aria-busy="true">
+      <div className="font-display text-3xl text-muted/60">Daily Check-In</div>
+    </div>
+  );
 }

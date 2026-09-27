@@ -2,8 +2,8 @@
 
 A one-tap-a-day family mood board. Everyone picks their name, taps how their day went on today's category
 (weather, battery, traffic light, golf score, report card, or final score), and it shows up instantly on the
-TV board and on every phone. Each evening the board unlocks a riddle (8:00 PM), then a quote and a scripture
-(9:00 PM). Yesterday's riddle answer is revealed the next day.
+TV board and on every phone. Every day brings a new riddle, quote and scripture; yesterday's riddle answer is
+revealed the next day. Everything rolls over at 4:00 AM Eastern.
 
 Live at **https://dailey-check-in.vercel.app**
 
@@ -30,7 +30,7 @@ Live at **https://dailey-check-in.vercel.app**
 | Want to change                     | Edit                                            |
 | ---------------------------------- | ----------------------------------------------- |
 | Family names or colors             | `FAMILY` in `lib/config.ts`                     |
-| Reveal times, reminder time, 4 AM  | constants in `lib/config.ts` (reminder time also in `supabase/migrations`) |
+| Reminder time, 4 AM rollover       | constants in `lib/config.ts` (reminder time also in `supabase/migrations`) |
 | Categories, labels, icons          | `lib/categories.tsx`                            |
 | Quotes, riddles, verses            | `content/quotes.json`, `content/riddles.json`, `content/verses.json` |
 

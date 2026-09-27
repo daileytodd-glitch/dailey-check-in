@@ -3,8 +3,6 @@ import {
   DAY_START_HOUR,
   NIGHT_DIM_END_HOUR,
   NIGHT_DIM_START_HOUR,
-  REVEAL_HOUR,
-  RIDDLE_UNLOCK_HOUR,
   TIME_ZONE,
 } from "./config";
 
@@ -103,21 +101,6 @@ export function shortWeekday(key: string): string {
   return new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "UTC" }).format(
     new Date(Date.UTC(y, m - 1, d)),
   );
-}
-
-/** Minutes since the start of the check-in day (DAY_START_HOUR). */
-function minutesIntoDay(date: Date): number {
-  const p = localParts(date);
-  const mins = p.hour * 60 + p.minute;
-  return mins >= DAY_START_HOUR * 60 ? mins - DAY_START_HOUR * 60 : mins + (24 - DAY_START_HOUR) * 60;
-}
-
-export function isRiddleUnlocked(date: Date = new Date()): boolean {
-  return minutesIntoDay(date) >= (RIDDLE_UNLOCK_HOUR - DAY_START_HOUR) * 60;
-}
-
-export function isRevealUnlocked(date: Date = new Date()): boolean {
-  return minutesIntoDay(date) >= (REVEAL_HOUR - DAY_START_HOUR) * 60;
 }
 
 export function isNightDim(date: Date = new Date()): boolean {

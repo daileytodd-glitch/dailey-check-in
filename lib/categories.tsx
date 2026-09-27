@@ -99,7 +99,7 @@ export const CATEGORIES: Category[] = [
       { id: "b", label: "B", tagline: "Solid B day", score: 75, color: GOOD },
       { id: "c", label: "C", tagline: "Average C day", score: 50, color: OKAY },
       { id: "d", label: "D", tagline: "Rough D day", score: 25, color: MEH },
-      { id: "f", label: "F", tagline: "Failed the day, try again tomorrow", score: 0, color: WORST },
+      { id: "f", label: "F", tagline: "Rough one. Tomorrow is a fresh start", score: 0, color: WORST },
     ],
   },
   {

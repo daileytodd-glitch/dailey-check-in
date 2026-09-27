@@ -25,6 +25,8 @@ export type CheckinState = {
   today: string;
   loading: boolean;
   error: string | null;
+  /** When data was last loaded successfully. */
+  updatedAt: Date | null;
   refresh: () => Promise<void>;
 };
 
@@ -33,6 +35,7 @@ export function useCheckins(pollMs = 60_000): CheckinState {
   const [rows, setRows] = useState<Checkin[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const now = useNow(30_000);
   const today = dayKey(now);
   const inflight = useRef<Promise<void> | null>(null);
@@ -44,6 +47,7 @@ export function useCheckins(pollMs = 60_000): CheckinState {
         const data = await loadRecentCheckins(60);
         setRows(data);
         setError(null);
+        setUpdatedAt(new Date());
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not load check-ins");
       } finally {
@@ -70,7 +74,7 @@ export function useCheckins(pollMs = 60_000): CheckinState {
     };
   }, [refresh, pollMs]);
 
-  return { rows, byMember: byMember(rows), today, loading, error, refresh };
+  return { rows, byMember: byMember(rows), today, loading, error, updatedAt, refresh };
 }
 
 /** Remember which family member this device belongs to. */

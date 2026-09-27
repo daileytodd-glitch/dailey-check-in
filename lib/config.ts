@@ -24,14 +24,8 @@ export const APP_NAME = "Daily Check-In";
 /** IANA time zone the family lives in. */
 export const TIME_ZONE = "America/New_York";
 
-/** A new check-in day begins at this hour (local). Late-night check-ins still count for "today". */
+/** A new day begins at this hour (local): check-ins, the riddle, the quote and the scripture all roll over then. */
 export const DAY_START_HOUR = 4;
-
-/** Local hour (24h) when the riddle of the day appears on the board. */
-export const RIDDLE_UNLOCK_HOUR = 20;
-
-/** Local hour (24h) when the quote and scripture of the day are revealed. */
-export const REVEAL_HOUR = 21;
 
 /** Daily reminder push notification, local time. */
 export const REMINDER_HOUR = 17;

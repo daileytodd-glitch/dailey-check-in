@@ -7,17 +7,16 @@ import { Reminders } from "@/components/Reminders";
 import { categoryForDay, levelFor, LevelIcon, moodColor, type Level } from "@/lib/categories";
 import { saveCheckin, streakFor, type Checkin } from "@/lib/checkins";
 import { APP_NAME, FAMILY, memberById, type Member } from "@/lib/config";
-import { useCheckins, useNow, useRememberedMember } from "@/lib/hooks";
+import { useCheckins, useRememberedMember } from "@/lib/hooks";
 import { prettyDay, shiftDayKey, shortWeekday } from "@/lib/time";
 
 export function CheckIn() {
-  const now = useNow(15_000);
   const { byMember, today, loading, error, refresh } = useCheckins();
   const [memberId, remember] = useRememberedMember();
   const [saving, setSaving] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [optimistic, setOptimistic] = useState<{ day: string; levelId: string } | null>(null);
+  const [optimistic, setOptimistic] = useState<{ member: string; day: string; levelId: string } | null>(null);
 
   useEffect(() => {
     if (!toast) return;
@@ -29,19 +28,15 @@ export function CheckIn() {
   const member = memberId ? memberById(memberId) : undefined;
   const mine = member ? byMember.get(member.id) ?? [] : [];
   const todayRow = mine.find((r) => r.day === today);
-  const currentLevelId = optimistic?.day === today ? optimistic.levelId : todayRow?.level_id;
+  const currentLevelId =
+    optimistic && member && optimistic.member === member.id && optimistic.day === today ? optimistic.levelId : todayRow?.level_id;
   const currentLevel = currentLevelId ? category.levels.find((l) => l.id === currentLevelId) : undefined;
-
-  function choose(m: Member) {
-    remember(m.id);
-    setOptimistic(null);
-  }
 
   async function pick(level: Level) {
     if (!member) return;
     setSaving(level.id);
     setSaveError(null);
-    setOptimistic({ day: today, levelId: level.id });
+    setOptimistic({ member: member.id, day: today, levelId: level.id });
     try {
       await saveCheckin(member.id, category.id, level.id, level.score);
       setToast(todayRow ? "Updated!" : "Locked in!");
@@ -54,138 +49,148 @@ export function CheckIn() {
     }
   }
 
+  const levelCols =
+    category.levels.length === 3 ? "grid-cols-3" : category.levels.length === 5 ? "grid-cols-3 md:grid-cols-5" : "grid-cols-3 md:grid-cols-6";
+
   return (
-    <main className="mx-auto w-full max-w-lg px-4 pt-6 safe-bottom flex flex-col gap-5">
-      <header className="flex items-end justify-between gap-3">
+    <main
+      className="mx-auto w-full max-w-6xl px-4 pb-6 flex flex-col gap-4"
+      style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))", paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
+    >
+      <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <div>
-          <h1 className="font-display text-3xl leading-none shimmer">{APP_NAME}</h1>
+          <h1 className="font-display text-3xl md:text-4xl leading-none shimmer">{APP_NAME}</h1>
           <p className="text-muted text-sm mt-1">{prettyDay(today)}</p>
         </div>
-        {member && (
-          <button
-            className="tap text-sm text-muted underline underline-offset-4"
-            onClick={() => remember(null)}
-          >
-            Not {member.name}?
-          </button>
-        )}
+        <PersonSwitcher byMember={byMember} today={today} selected={member?.id ?? null} onSelect={(id) => { remember(id); setOptimistic(null); }} />
       </header>
 
       {error && (
-        <div className="card p-3 text-sm text-red border-red/40">
-          Can&rsquo;t reach the family board right now. {error}
-        </div>
+        <div className="card p-3 text-sm text-red border-red/40">Can&rsquo;t reach the family board right now. {error}</div>
       )}
 
-      {!member ? (
-        <section className="flex flex-col gap-3">
-          <h2 className="font-display text-2xl">Who&rsquo;s checking in?</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {FAMILY.map((m, i) => {
-              const rows = byMember.get(m.id) ?? [];
-              const lastOdd = i === FAMILY.length - 1 && FAMILY.length % 2 === 1;
-              const row = rows.find((r) => r.day === today);
-              const streak = streakFor(rows, today);
-              return (
-                <button
-                  key={m.id}
-                  onClick={() => choose(m)}
-                  className={`tap card p-4 flex flex-col items-center gap-2 text-center ${lastOdd ? "col-span-2" : ""}`}
-                  style={{ borderColor: `${m.color}55` }}
-                >
-                  <div className="relative">
-                    <Avatar member={m} size={64} />
-                    {row && (
-                      <div className="absolute -right-2 -bottom-2 rounded-full bg-navy-900 p-0.5">
-                        <LevelIcon categoryId={row.category_id} levelId={row.level_id} size={30} />
-                      </div>
-                    )}
-                  </div>
-                  <div className="font-display text-xl">{m.name}</div>
-                  <div className="text-xs text-muted">
-                    {row ? "Checked in" : "Not yet today"}
-                    {streak > 1 && <span className="ml-1 text-gold font-bold">· {streak} day streak</span>}
-                  </div>
-                </button>
-              );
-            })}
+      <section className="card p-4 md:p-5 flex flex-col gap-4" style={member ? { borderColor: `${member.color}66` } : undefined}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            {member && <Avatar member={member} size={48} />}
+            <div className="min-w-0">
+              <div className="font-display text-2xl leading-tight">{member ? `Hey ${member.name}!` : "Tap your name above to check in"}</div>
+              <div className="text-sm text-muted">{currentLevel ? "You're checked in. Tap another to change it." : category.prompt}</div>
+            </div>
           </div>
-        </section>
-      ) : (
-        <>
-          <section className="card p-4 flex flex-col gap-4" style={{ borderColor: `${member.color}66` }}>
-            <div className="flex items-center gap-3">
-              <Avatar member={member} size={52} />
-              <div className="min-w-0">
-                <div className="font-display text-2xl leading-tight">Hey {member.name}!</div>
-                <div className="text-sm text-muted">
-                  {currentLevel ? "You're checked in. Tap another to change it." : category.prompt}
-                </div>
-              </div>
-            </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-xs uppercase tracking-widest text-muted">Today&rsquo;s category</span>
+            <span className="font-display text-xl text-gold">{category.name}</span>
+          </div>
+        </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs uppercase tracking-widest text-muted">Today&rsquo;s category</span>
-              <span className="font-display text-lg text-gold">{category.name}</span>
-            </div>
-
-            <div className={`grid gap-3 ${category.levels.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
-              {category.levels.map((level, i) => {
-                const selected = currentLevelId === level.id;
-                const lastOdd = category.levels.length !== 3 && i === category.levels.length - 1 && category.levels.length % 2 === 1;
-                return (
-                  <button
-                    key={level.id}
-                    onClick={() => pick(level)}
-                    disabled={saving !== null}
-                    className={`tap rounded-2xl p-3 flex flex-col items-center gap-2 border-2 ${
-                      selected ? "bg-white/12" : "bg-white/4 border-white/10"
-                    } ${saving && saving !== level.id ? "opacity-60" : ""} ${lastOdd ? "col-span-2" : ""}`}
-                    style={selected ? { borderColor: level.color, boxShadow: `0 0 0 4px ${level.color}33` } : undefined}
-                    aria-pressed={selected}
-                  >
-                    <div className={selected ? "pop" : ""}>
-                      <LevelIcon categoryId={category.id} levelId={level.id} size={72} />
-                    </div>
-                    <div className="font-display text-base text-center leading-tight">{level.label}</div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {currentLevel && (
-              <div
-                className="pop rounded-xl px-3 py-2 text-center font-bold"
-                style={{ background: `${currentLevel.color}22`, color: currentLevel.color }}
+        <div className={`grid gap-2 md:gap-3 ${levelCols} ${member ? "" : "opacity-50"}`}>
+          {category.levels.map((level) => {
+            const selected = currentLevelId === level.id;
+            return (
+              <button
+                key={level.id}
+                onClick={() => pick(level)}
+                disabled={!member || saving !== null}
+                className={`tap rounded-2xl p-2 md:p-3 flex flex-col items-center gap-2 border-2 ${
+                  selected ? "bg-white/12" : "bg-white/4 border-white/10"
+                } ${saving && saving !== level.id ? "opacity-60" : ""}`}
+                style={selected ? { borderColor: level.color, boxShadow: `0 0 0 4px ${level.color}33` } : undefined}
+                aria-pressed={selected}
               >
-                {member.name}: {currentLevel.tagline}
-              </div>
-            )}
-            {saveError && <div className="text-sm text-red">{saveError}</div>}
-          </section>
+                <div className={selected ? "pop" : ""}>
+                  <LevelIcon categoryId={category.id} levelId={level.id} size="clamp(56px, 8vw, 112px)" />
+                </div>
+                <div className="font-display text-sm md:text-base text-center leading-tight">{level.label}</div>
+              </button>
+            );
+          })}
+        </div>
 
-          <WeekStrip rows={mine} today={today} member={member} />
-        </>
-      )}
+        {/* Reads as a scale from great to rough when the levels sit in one row. */}
+        <div className="hidden md:flex items-center gap-3 text-xs uppercase tracking-widest text-muted">
+          <span>Great day</span>
+          <div className="flex-1 h-1.5 rounded-full" style={{ background: "linear-gradient(90deg, #34D399, #A3E635, #FACC15, #FB923C, #F87171, #C026D3)" }} />
+          <span>Rough day</span>
+        </div>
 
-      <FamilyToday byMember={byMember} today={today} loading={loading} />
+        {member && currentLevel && (
+          <div className="pop rounded-xl px-3 py-2 text-center font-bold" style={{ background: `${currentLevel.color}22`, color: currentLevel.color }}>
+            {member.name}: {currentLevel.tagline}
+          </div>
+        )}
+        {saveError && <div className="text-sm text-red">{saveError}</div>}
+      </section>
 
-      <DailyCards day={today} now={now} variant="phone" />
+      <DailyCards day={today} variant="phone" />
 
-      {member && <Reminders member={member} />}
+      <div className="grid gap-4 md:grid-cols-[3fr_2fr]">
+        <FamilyToday byMember={byMember} today={today} loading={loading} />
+        <div className="flex flex-col gap-4">
+          {member && <WeekStrip rows={mine} today={today} member={member} />}
+          {member && <Reminders member={member} />}
+        </div>
+      </div>
 
-      <footer className="text-center text-xs text-muted pb-4">
-        <a href="/tv" className="underline underline-offset-4">
-          Open the TV board
-        </a>
+      <footer className="text-center text-xs text-muted">
+        <a href="/tv" className="underline underline-offset-4">Open the TV board</a>
       </footer>
 
+      <div aria-live="polite" className="sr-only">{toast ?? ""}</div>
       {toast && (
         <div className="pop fixed left-1/2 -translate-x-1/2 bottom-8 rounded-full bg-gold text-navy-900 font-display px-5 py-2 text-lg shadow-xl">
           {toast}
         </div>
       )}
     </main>
+  );
+}
+
+/** Always-visible row of family members. Tap to switch who is checking in. */
+function PersonSwitcher({
+  byMember,
+  today,
+  selected,
+  onSelect,
+}: {
+  byMember: Map<string, Checkin[]>;
+  today: string;
+  selected: string | null;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <div className="flex gap-1 md:gap-2" role="radiogroup" aria-label="Who is checking in">
+      {FAMILY.map((m) => {
+        const rows = byMember.get(m.id) ?? [];
+        const row = rows.find((r) => r.day === today);
+        const streak = streakFor(rows, today);
+        const isSelected = selected === m.id;
+        return (
+          <button
+            key={m.id}
+            role="radio"
+            aria-checked={isSelected}
+            onClick={() => onSelect(m.id)}
+            className={`tap rounded-2xl px-2 py-2 flex flex-col items-center gap-1 min-w-[62px] md:min-w-[76px] border-2 ${
+              isSelected ? "bg-white/12" : "border-transparent"
+            }`}
+            style={isSelected ? { borderColor: m.color } : undefined}
+            title={row ? "Checked in today" : "Not checked in yet"}
+          >
+            <div
+              className="rounded-full p-[3px]"
+              style={{ boxShadow: row ? `0 0 0 3px ${moodColor(row.score)}` : "0 0 0 3px rgba(255,255,255,0.08)" }}
+            >
+              <Avatar member={m} size={44} />
+            </div>
+            <div className="font-display text-sm md:text-base leading-none">{m.name}</div>
+            <div className="text-[10px] leading-none" style={{ color: row ? moodColor(row.score) : "var(--muted)" }}>
+              {row ? "done" : streak > 0 ? `${streak}-day streak` : "not yet"}
+            </div>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -216,7 +221,7 @@ function WeekStrip({ rows, today, member }: { rows: Checkin[]; today: string; me
               <div
                 className="h-12 w-full rounded-lg flex items-center justify-center"
                 style={{
-                  background: row ? `${moodColor(row.score)}22` : "rgba(255,255,255,0.04)",
+                  background: row ? `${moodColor(row.score)}33` : "rgba(255,255,255,0.04)",
                   outline: d === today ? `2px solid ${member.color}` : undefined,
                 }}
                 title={lvl ? `${prettyDay(d)}: ${lvl.tagline}` : `${prettyDay(d)}: no check-in`}
@@ -253,7 +258,7 @@ function FamilyToday({ byMember, today, loading }: { byMember: Map<string, Check
                   {lvl ? lvl.tagline : loading ? "…" : "Hasn't checked in yet"}
                 </div>
               </div>
-              {row && <LevelIcon categoryId={row.category_id} levelId={row.level_id} size={44} />}
+              {row && <LevelIcon categoryId={row.category_id} levelId={row.level_id} size={48} />}
             </li>
           );
         })}

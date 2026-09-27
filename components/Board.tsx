@@ -11,7 +11,7 @@ import { clockLabel, isNightDim, prettyDay } from "@/lib/time";
 /** The TV board: today only, big and readable from the couch. */
 export function Board() {
   const now = useNow(10_000);
-  const { byMember, today, error } = useCheckins(45_000);
+  const { byMember, today, error, updatedAt } = useCheckins(45_000);
   const category = categoryForDay(today);
   const connected = !error;
 
@@ -38,7 +38,7 @@ export function Board() {
           <div className="text-right">
             <div className="font-display text-[3vw] leading-none">{clockLabel(now)}</div>
             <div className="text-[1.1vw] text-muted mt-[0.3vw]">
-              {connected ? "Live" : "Reconnecting…"} · {done.length}/{FAMILY.length} checked in
+              {connected && updatedAt ? `Updated ${clockLabel(updatedAt)}` : "Reconnecting…"} · {done.length}/{FAMILY.length} checked in
             </div>
           </div>
         </header>
@@ -47,7 +47,7 @@ export function Board() {
           {done.length === 0 ? (
             <div className="card flex-1 flex flex-col items-center justify-center gap-[1vw] text-center">
               <div className="float">
-                <LevelIcon categoryId={category.id} levelId={category.levels[0].id} size="14vw" />
+                <LevelIcon categoryId={category.id} levelId={category.levels[0].id} size="min(14vw, 30vh)" />
               </div>
               <div className="font-display text-[3vw]">Nobody has checked in yet</div>
               <div className="text-[1.6vw] text-muted">{category.prompt}</div>
@@ -57,13 +57,13 @@ export function Board() {
               {done.map(({ member, row, level, streak }) => (
                 <div
                   key={member.id}
-                  className="card pop flex-1 min-w-0 flex flex-col items-center justify-center gap-[0.8vw] p-[1.5vw] text-center"
+                  className="card pop flex-1 min-w-0 min-h-0 overflow-hidden flex flex-col items-center justify-center gap-[0.8vw] p-[1.5vw] text-center"
                   style={{ borderColor: `${member.color}80`, boxShadow: `inset 0 0 0 0.25vw ${member.color}33` }}
                 >
-                  <LevelIcon categoryId={row!.category_id} levelId={level!.id} size={done.length >= 4 ? "13vw" : "16vw"} />
+                  <LevelIcon categoryId={row!.category_id} levelId={level!.id} size={done.length >= 4 ? "min(13vw, 26vh)" : "min(16vw, 26vh)"} />
                   <div className="flex items-center gap-[0.8vw] mt-[0.4vw]">
                     <Avatar member={member} size="3.4vw" />
-                    <div className="font-display text-[3vw] leading-none">{member.name}</div>
+                    <div className="font-display text-[min(3vw,5vh)] leading-none">{member.name}</div>
                   </div>
                   <div className="font-bold text-[1.7vw] leading-tight" style={{ color: level!.color }}>
                     {level!.tagline}
@@ -87,8 +87,8 @@ export function Board() {
           )}
         </main>
 
-        <footer className="min-h-0 max-h-[38%]">
-          <DailyCards day={today} now={now} variant="tv" />
+        <footer className="min-h-0 max-h-[40vh] overflow-hidden">
+          <DailyCards day={today} variant="tv" />
         </footer>
       </div>
     </div>
