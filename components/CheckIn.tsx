@@ -63,7 +63,7 @@ export function CheckIn() {
 
   return (
     <main
-      className="mx-auto w-full max-w-6xl px-4 pb-6 flex flex-col gap-4"
+      className="mx-auto w-full max-w-6xl px-4 pb-6 flex flex-col gap-4 md:gap-3"
       style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))", paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
     >
       <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
@@ -165,15 +165,14 @@ export function CheckIn() {
 
       <DailyCards day={today} variant="phone" />
 
-      <div className={`grid gap-4 ${member ? "md:grid-cols-[3fr_2fr]" : ""}`}>
-        <FamilyToday byMember={byMember} today={today} loading={loading} />
-        {member && (
-          <div className="flex flex-col gap-4">
-            <WeekStrip rows={mine} today={today} member={member} />
-            <Reminders member={member} />
-          </div>
-        )}
-      </div>
+      <FamilyToday byMember={byMember} today={today} loading={loading} />
+
+      {member && (
+        <div className="grid gap-4 md:grid-cols-2">
+          <WeekStrip rows={mine} today={today} member={member} />
+          <Reminders member={member} />
+        </div>
+      )}
 
       <footer className="text-center text-xs text-muted">
         <a href="/tv" className="underline underline-offset-4">Open the TV board</a>
@@ -283,25 +282,35 @@ function WeekStrip({ rows, today, member }: { rows: Checkin[]; today: string; me
 function FamilyToday({ byMember, today, loading }: { byMember: Map<string, Checkin[]>; today: string; loading: boolean }) {
   const category = categoryForDay(today);
   return (
-    <section className="card p-4 flex flex-col gap-3">
+    <section className="card p-4 flex flex-col gap-2">
       <div className="flex items-baseline justify-between">
         <h2 className="font-display text-lg">Family today</h2>
         <span className="text-xs text-muted">{category.name}</span>
       </div>
-      <ul className="flex flex-col gap-2">
+      <ul className="grid grid-cols-1 md:grid-cols-5 gap-2 md:gap-3">
         {FAMILY.map((m) => {
           const row = byMember.get(m.id)?.find((r) => r.day === today);
           const lvl = row ? levelFor(row.category_id, row.level_id) : undefined;
           return (
-            <li key={m.id} className="flex items-center gap-3">
+            <li
+              key={m.id}
+              className="rounded-2xl bg-white/5 px-3 py-2 flex md:flex-col items-center md:text-center gap-3 md:gap-0.5"
+              style={{ boxShadow: lvl ? `inset 0 0 0 2px ${lvl.color}55` : undefined }}
+            >
               <Avatar member={m} size={36} />
-              <div className="flex-1 min-w-0">
-                <div className="font-bold">{m.name}</div>
+              <div className="flex-1 md:flex-none min-w-0 md:order-3">
+                <div className="font-bold leading-tight">{m.name}</div>
                 <div className="text-sm truncate" style={{ color: lvl ? lvl.color : "var(--muted)" }}>
-                  {lvl ? lvl.tagline : loading ? "…" : "Hasn't checked in yet"}
+                  {lvl ? lvl.tagline : loading ? "…" : "Not yet"}
                 </div>
               </div>
-              {row && <LevelIcon categoryId={row.category_id} levelId={row.level_id} size={48} />}
+              <div className="md:order-2 h-12 flex items-center justify-center">
+                {row ? (
+                  <LevelIcon categoryId={row.category_id} levelId={row.level_id} size={48} />
+                ) : (
+                  <span className="text-muted text-2xl" aria-hidden>·</span>
+                )}
+              </div>
             </li>
           );
         })}
