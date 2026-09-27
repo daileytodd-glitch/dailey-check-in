@@ -1,4 +1,4 @@
-// Family and schedule settings for the Daily Check-In.
+// Family and schedule settings for the Dailey Check-In.
 // Everything the family might want to tweak lives here.
 
 export type Member = {
@@ -19,7 +19,7 @@ export const FAMILY: Member[] = [
   { id: "mom", name: "Mom", color: "#FFE45C", ink: "#6B5A00", initials: "M" },
 ];
 
-export const APP_NAME = "Daily Check-In";
+export const APP_NAME = "Dailey Check-In";
 
 /** IANA time zone the family lives in. */
 export const TIME_ZONE = "America/New_York";

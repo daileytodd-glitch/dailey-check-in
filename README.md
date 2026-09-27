@@ -1,4 +1,4 @@
-# Daily Check-In
+# Dailey Check-In
 
 A one-tap-a-day family mood board. Everyone picks their name, taps how their day went on today's category
 (weather, battery, traffic light, golf score, report card, or final score), and it shows up instantly on the

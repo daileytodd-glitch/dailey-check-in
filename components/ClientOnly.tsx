@@ -13,7 +13,7 @@ export function ClientOnly({ children }: { children: React.ReactNode }) {
   if (mounted) return <>{children}</>;
   return (
     <div className="min-h-dvh flex items-center justify-center" aria-busy="true">
-      <div className="font-display text-3xl text-muted/60">Daily Check-In</div>
+      <div className="font-display text-3xl text-muted/60">Dailey Check-In</div>
     </div>
   );
 }

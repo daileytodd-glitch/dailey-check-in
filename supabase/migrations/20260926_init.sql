@@ -1,4 +1,4 @@
--- Daily Check-In schema. Applied to the family's Supabase project.
+-- Dailey Check-In schema. Applied to the family's Supabase project.
 
 create table if not exists public.checkins (
   member_id   text        not null,

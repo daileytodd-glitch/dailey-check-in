@@ -1,10 +1,10 @@
-/* Daily Check-In service worker: receives reminder pushes and opens the app on tap. */
+/* Dailey Check-In service worker: receives reminder pushes and opens the app on tap. */
 
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
 self.addEventListener("push", (event) => {
-  let data = { title: "Daily Check-In", body: "Time to check in!", url: "/" };
+  let data = { title: "Dailey Check-In", body: "Time to check in!", url: "/" };
   try {
     if (event.data) data = { ...data, ...event.data.json() };
   } catch {}
