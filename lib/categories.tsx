@@ -337,7 +337,7 @@ function GolfIcon({ level, ...p }: IconProps & { level: string }) {
 }
 
 /** Which look the Report Card category uses: "star", "stamp", or "varsity". */
-export const GRADE_ICON_STYLE: GradeStyle = "star";
+export const GRADE_ICON_STYLE: GradeStyle = "stamp";
 export type GradeStyle = "star" | "stamp" | "varsity" | "paper";
 
 const GRADE_COLORS: Record<string, string> = { a: GREAT, b: GOOD, c: OKAY, d: MEH, f: BAD };
