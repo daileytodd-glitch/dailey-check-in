@@ -1,5 +1,10 @@
 import { CheckIn } from "@/components/CheckIn";
+import { ClientOnly } from "@/components/ClientOnly";
 
 export default function Page() {
-  return <CheckIn />;
+  return (
+    <ClientOnly>
+      <CheckIn />
+    </ClientOnly>
+  );
 }

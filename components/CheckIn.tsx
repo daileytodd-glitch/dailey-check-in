@@ -81,15 +81,16 @@ export function CheckIn() {
         <section className="flex flex-col gap-3">
           <h2 className="font-display text-2xl">Who&rsquo;s checking in?</h2>
           <div className="grid grid-cols-2 gap-3">
-            {FAMILY.map((m) => {
+            {FAMILY.map((m, i) => {
               const rows = byMember.get(m.id) ?? [];
+              const lastOdd = i === FAMILY.length - 1 && FAMILY.length % 2 === 1;
               const row = rows.find((r) => r.day === today);
               const streak = streakFor(rows, today);
               return (
                 <button
                   key={m.id}
                   onClick={() => choose(m)}
-                  className="tap card p-4 flex flex-col items-center gap-2 text-center"
+                  className={`tap card p-4 flex flex-col items-center gap-2 text-center ${lastOdd ? "col-span-2" : ""}`}
                   style={{ borderColor: `${m.color}55` }}
                 >
                   <div className="relative">
@@ -129,8 +130,9 @@ export function CheckIn() {
             </div>
 
             <div className={`grid gap-3 ${category.levels.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
-              {category.levels.map((level) => {
+              {category.levels.map((level, i) => {
                 const selected = currentLevelId === level.id;
+                const lastOdd = category.levels.length !== 3 && i === category.levels.length - 1 && category.levels.length % 2 === 1;
                 return (
                   <button
                     key={level.id}
@@ -138,7 +140,7 @@ export function CheckIn() {
                     disabled={saving !== null}
                     className={`tap rounded-2xl p-3 flex flex-col items-center gap-2 border-2 ${
                       selected ? "bg-white/12" : "bg-white/4 border-white/10"
-                    } ${saving && saving !== level.id ? "opacity-60" : ""}`}
+                    } ${saving && saving !== level.id ? "opacity-60" : ""} ${lastOdd ? "col-span-2" : ""}`}
                     style={selected ? { borderColor: level.color, boxShadow: `0 0 0 4px ${level.color}33` } : undefined}
                     aria-pressed={selected}
                   >
