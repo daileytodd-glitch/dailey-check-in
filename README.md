@@ -5,12 +5,14 @@ A one-tap-a-day family mood board. Everyone picks their name, taps how their day
 TV board and on every phone. Each evening the board unlocks a riddle (8:00 PM), then a quote and a scripture
 (9:00 PM). Yesterday's riddle answer is revealed the next day.
 
+Live at **https://dailey-check-in.vercel.app**
+
 ## Screens
 
-| URL   | What it is                                                                 |
-| ----- | -------------------------------------------------------------------------- |
-| `/`   | The check-in screen for phones and iPads. Add it to the Home Screen.       |
-| `/tv` | The board. Open it in the TV's browser and leave it up. Updates live.      |
+| URL                                      | What it is                                                            |
+| ---------------------------------------- | --------------------------------------------------------------------- |
+| https://dailey-check-in.vercel.app/      | The check-in screen for phones and iPads. Add it to the Home Screen.  |
+| https://dailey-check-in.vercel.app/tv    | The board. Open it in the TV's browser and leave it up. Updates live. |
 
 ## How it works
 
@@ -61,7 +63,15 @@ on conflict (id) do update set url = excluded.url, secret = excluded.secret;
 
 ## Putting it on the TV
 
-See the setup notes at the end of the conversation that built this, or open `/tv` in any browser and press F11.
+Samsung Frame TV: open the **Internet** app (Samsung's browser), go to `dailey-check-in.vercel.app/tv`, and bookmark
+it. The board fills the screen, updates live, dims itself between 10 PM and 6 AM, and drifts slowly so no pixel
+stays put. Switch inputs to watch TV; reopen the browser to bring the board back. Any spare tablet or laptop on the
+TV's HDMI works the same way.
+
+## Hosting
+
+- Vercel project `daily-check-in` (team "todd-dailey-s-projects"), deployed from this repository.
+- Supabase project "dailey.todd@gmail.com's Project" holds the tables from `supabase/migrations/`.
 
 ## Content credits
 
