@@ -336,9 +336,64 @@ function GolfIcon({ level, ...p }: IconProps & { level: string }) {
   );
 }
 
-function GradeIcon({ level, ...p }: IconProps & { level: string }) {
+/** Which look the Report Card category uses: "star", "stamp", or "varsity". */
+export const GRADE_ICON_STYLE: GradeStyle = "star";
+export type GradeStyle = "star" | "stamp" | "varsity" | "paper";
+
+const GRADE_COLORS: Record<string, string> = { a: GREAT, b: GOOD, c: OKAY, d: MEH, f: BAD };
+
+function starPath(cx: number, cy: number, outer: number, inner: number) {
+  const pts: string[] = [];
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 === 0 ? outer : inner;
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    pts.push(`${(cx + Math.cos(a) * r).toFixed(1)},${(cy + Math.sin(a) * r).toFixed(1)}`);
+  }
+  return pts.join(" ");
+}
+
+export function GradeIcon({ level, style = GRADE_ICON_STYLE, ...p }: IconProps & { level: string; style?: GradeStyle }) {
   const letter = level.toUpperCase();
-  const color = { a: GREAT, b: GOOD, c: OKAY, d: MEH, f: BAD }[level] ?? OKAY;
+  const color = GRADE_COLORS[level] ?? OKAY;
+  if (style === "star") {
+    // A gold-star sticker, the kind that goes on a great test.
+    return (
+      <Svg {...p} title={`Grade ${letter}`}>
+        <polygon points={starPath(50, 52, 47, 22)} fill={color} stroke="rgba(0,0,0,0.25)" strokeWidth={2} strokeLinejoin="round" />
+        <polygon points={starPath(50, 52, 34, 16)} fill="rgba(255,255,255,0.18)" />
+        <text x={50} y={64} textAnchor="middle" fontSize={32} fontWeight={900} fill="#0B1E3F" fontFamily="inherit">
+          {letter}
+        </text>
+      </Svg>
+    );
+  }
+  if (style === "stamp") {
+    // A teacher's rubber stamp, slightly crooked like it was pressed by hand.
+    return (
+      <Svg {...p} title={`Grade ${letter}`}>
+        <g transform="rotate(-12 50 50)">
+          <circle cx={50} cy={50} r={42} fill="none" stroke={color} strokeWidth={5} strokeDasharray="9 3" />
+          <circle cx={50} cy={50} r={34} fill={`${color}22`} stroke={color} strokeWidth={2.5} />
+          <text x={50} y={66} textAnchor="middle" fontSize={44} fontWeight={900} fill={color} fontFamily="inherit">
+            {letter}
+          </text>
+        </g>
+      </Svg>
+    );
+  }
+  if (style === "varsity") {
+    // A chenille varsity letter patch.
+    return (
+      <Svg {...p} title={`Grade ${letter}`}>
+        <rect x={12} y={12} width={76} height={76} rx={14} fill={color} />
+        <rect x={12} y={12} width={76} height={76} rx={14} fill="none" stroke="rgba(0,0,0,0.35)" strokeWidth={3} strokeDasharray="4 3" />
+        <text x={50} y={70} textAnchor="middle" fontSize={54} fontWeight={900} fill="#FFFDF5" stroke="#0B1E3F" strokeWidth={3} paintOrder="stroke" fontFamily="Georgia, 'Times New Roman', serif">
+          {letter}
+        </text>
+      </Svg>
+    );
+  }
+  // The original paper report card.
   return (
     <Svg {...p} title={`Grade ${letter}`}>
       <rect x={16} y={6} width={68} height={88} rx={6} fill="#FFFDF5" stroke="#E4DCC0" strokeWidth={3} />
